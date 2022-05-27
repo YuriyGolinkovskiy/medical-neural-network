@@ -7,20 +7,33 @@ import {
     UseInterceptors,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { NetworkService } from './network.service';
-
+import { NetworkSettingsDto } from './dto/network-settings.dto';
+import { NetworkService, predictResult } from './network.service';
+import { PredictionDto } from './dto/prediction.dto';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+@ApiTags('Network')
 @Controller('network')
 export class NetworkController {
     constructor(private readonly networkService: NetworkService) {}
 
-    @Get('trainNetwork')
-    getTrainedNetworkModel(): Promise<void> {
-        return this.networkService.getTrainedNetworkModel(100, 32, './model');
+    @ApiOperation({ summary: 'Тренировать сеть и сохранить ее на сервере' })
+    @ApiResponse({ status: 200, type: null })
+    @Post('trainNetwork')
+    getTrainedNetworkModel(
+        @Body() networkSettingsDto: NetworkSettingsDto
+    ): Promise<void> {
+        const path = './' + networkSettingsDto.modelSaveName;
+        return this.networkService.getTrainedNetworkModel(networkSettingsDto);
     }
 
+    @ApiOperation({ summary: 'Получить предсказание сети' })
+    @ApiResponse({ status: 200, type: null })
     @Post('predict')
     @UseInterceptors(FilesInterceptor('file'))
-    getPredict(@UploadedFiles() files: Express.Multer.File[]): Promise<void> {
-        return this.networkService.getPrediction(files);
+    getPredict(
+        @UploadedFiles() files: Express.Multer.File[],
+        @Body() predictionDto: PredictionDto
+    ): Promise<predictResult[]> {
+        return this.networkService.getPrediction(files, predictionDto);
     }
 }

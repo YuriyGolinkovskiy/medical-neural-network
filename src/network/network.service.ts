@@ -3,11 +3,27 @@ import * as tf from '@tensorflow/tfjs-node';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Network } from './network.model';
+import { NetworkSettingsDto } from './dto/network-settings.dto';
+import { PredictionDto } from './dto/prediction.dto';
+
+export interface networkArgs {
+    epochs: number;
+    batchSize: number;
+    validationSplit: number;
+}
+
+export interface predictResult {
+    [key: string]: number;
+}
+interface predict {
+    className: string;
+    probability: number;
+}
 
 @Injectable()
 export class NetworkService {
-    TRAIN_DIR = 'src/dataset/train_small';
-    TEST_DIR = 'src/dataset/test_small';
+    TRAIN_DIR = 'src/dataset';
+    TEST_DIR = 'src/dataset';
     MODEL_DIR = 'model/model.json';
 
     trainData = [];
@@ -15,11 +31,16 @@ export class NetworkService {
     network = new Network();
 
     async getTrainedNetworkModel(
-        epochs: number,
-        batchSize: number,
-        modelSavePath: string
+        networkSettingsDto: NetworkSettingsDto
     ): Promise<void> {
-        this.loadData();
+        console.log('Loading images...');
+        this.trainData = this.loadImages(
+            path.join(this.TRAIN_DIR, networkSettingsDto.pathTrainData)
+        );
+        this.testData = this.loadImages(
+            path.join(this.TEST_DIR, networkSettingsDto.pathTestData)
+        );
+        console.log('Images loaded successfully');
 
         const { images: trainImages, labels: trainLabels } =
             this.getTrainData();
@@ -28,12 +49,12 @@ export class NetworkService {
 
         this.network.model.summary();
 
-        const validationSplit = 0.15;
-        await this.network.model.fit(trainImages, trainLabels, {
-            epochs,
-            batchSize,
-            validationSplit,
-        });
+        const networkArgs: networkArgs = {
+            epochs: networkSettingsDto.epochs,
+            batchSize: networkSettingsDto.batchSize,
+            validationSplit: 0.15,
+        };
+        await this.network.model.fit(trainImages, trainLabels, networkArgs);
         const { images: testImages, labels: testLabels } = this.getTestData();
         const evalOutput = this.network.model.evaluate(testImages, testLabels);
 
@@ -42,14 +63,18 @@ export class NetworkService {
                 ` Loss=${evalOutput[0].dataSync()[0].toFixed(3)}; ` +
                 `Accuracy = ${evalOutput[1].dataSync()[0].toFixed(3)}; `
         );
-
+        const modelSavePath = './models/' + networkSettingsDto.modelSaveName;
         await this.network.model.save(`file://${modelSavePath}`);
         console.log(`Saved model to path: ${modelSavePath}`);
+        return null;
     }
 
-    async getPrediction(files: Express.Multer.File[]): Promise<void> {
+    async getPrediction(
+        files: Express.Multer.File[],
+        predictionDto: PredictionDto
+    ): Promise<predictResult[]> {
         let loadedModel: tf.LayersModel = await tf.loadLayersModel(
-            `file://model/model.json`
+            `file://models/${predictionDto.modelName}/model.json`
         );
         let tensors: tf.Tensor<tf.Rank>[] = [];
         files.forEach((file) => {
@@ -62,7 +87,7 @@ export class NetworkService {
             tensors.push(tensor);
         });
 
-        let predictions = [];
+        let predictions: predict[][] = [];
         let re = /\[/gi;
         let re1 = /]/gi;
         tensors.forEach((tensor) => {
@@ -78,25 +103,33 @@ export class NetworkService {
                 .slice(0, -1);
 
             let target = this.network.TARGET_CLASSES;
-            let top2 = Array.from(prediction)
+            let top2: predict[] = Array.from(prediction)
                 .map(function (p, i) {
                     return {
-                        probability: p,
+                        probability: Number(p),
                         className: target[i],
                     };
                 })
-                .sort(function (a: any, b: any) {
+                .sort(function (a: predict, b: predict) {
                     return b.probability - a.probability;
                 })
                 .slice(0, 2);
             predictions.push(top2);
         });
-        predictions.forEach((predict) => {
+        let results: predictResult[] = new Array<predictResult>();
+        predictions.forEach((predict: predict[]) => {
             console.log('////////////');
-            predict.forEach((element) => {
-                console.log(`${element.className}: ${element.probability}`);
+            let result: predictResult = {};
+            predict.forEach((element: predict) => {
+                result[element.className] = element.probability;
+            });
+            results.push(result);
+            Object.keys(result).forEach((elem) => {
+                console.log(`${elem}: ${result[elem]}`);
             });
         });
+
+        return results;
     }
 
     private loadImages(dataDir: string): (tf.Tensor<tf.Rank>[] | boolean[])[] {
@@ -105,6 +138,7 @@ export class NetworkService {
         var files: string[] = fs.readdirSync(dataDir);
         for (let i = 0; i < files.length; i++) {
             var filePath: string = path.join(dataDir, files[i]);
+            console.log(files[i]);
             var buffer: Buffer = fs.readFileSync(filePath);
             var imageTensor: tf.Tensor<tf.Rank> = tf.node
                 .decodeImage(buffer)
@@ -120,13 +154,6 @@ export class NetworkService {
             labels.push(hasPneumonia);
         }
         return [images, labels];
-    }
-
-    private loadData() {
-        console.log('Loading images...');
-        this.trainData = this.loadImages(this.TRAIN_DIR);
-        this.testData = this.loadImages(this.TEST_DIR);
-        console.log('Images loaded successfully');
     }
 
     private getTrainData() {
