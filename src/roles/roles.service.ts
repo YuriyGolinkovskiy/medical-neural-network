@@ -11,26 +11,31 @@ export class RolesService {
         @InjectModel(Role.name) private roleModel: Model<RoleDocument>
     ) {}
 
-    async createRole(createRoleDto: CreateRoleDto): Promise<Role> {
+    async createRole(createRoleDto: CreateRoleDto): Promise<RoleDocument> {
         const role = await this.roleModel.create(createRoleDto);
         return role;
     }
 
-    async getRoleByValue(_value: string): Promise<Role> {
-        const role = await this.roleModel.findOne({ value: _value });
+    async getRoleByValue(_value: string): Promise<RoleDocument> {
+        const role = await this.roleModel.findOne({
+            value: _value,
+        });
         return role;
     }
 
-    async findAll(): Promise<Role[]> {
+    async findAll(): Promise<RoleDocument[]> {
         return this.roleModel.find().exec();
     }
 
-    async removeByValue(_value: string): Promise<Role> {
+    async removeByValue(_value: string): Promise<RoleDocument> {
         const role = await this.roleModel.findOneAndDelete({ value: _value });
         return role;
     }
 
-    async updateByValue(_value: string, roleDto: UpdateRoleDto): Promise<Role> {
+    async updateByValue(
+        _value: string,
+        roleDto: UpdateRoleDto
+    ): Promise<RoleDocument> {
         const role = await this.roleModel.findOneAndUpdate(
             { value: _value },
             roleDto,

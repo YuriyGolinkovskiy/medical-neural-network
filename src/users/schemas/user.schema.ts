@@ -1,7 +1,8 @@
+import { Type } from '@nestjs/common';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import mongoose, { Document } from 'mongoose';
-import { Role } from 'src/roles/schemas/roles.schema';
+import { Role } from '../../roles/schemas/roles.schema';
 
 export type UserDocument = User & Document;
 
@@ -23,7 +24,7 @@ export class User {
     roles: [
         {
             type: mongoose.Schema.Types.ObjectId;
-            ref: Role;
+            ref: 'Role';
         }
     ];
 }

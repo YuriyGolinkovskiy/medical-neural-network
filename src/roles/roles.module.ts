@@ -12,6 +12,7 @@ import { User, UserSchema } from 'src/users/schemas/user.schema';
             { name: User.name, schema: UserSchema },
         ]),
     ],
+    exports: [RolesService],
     providers: [RolesService],
     controllers: [RolesController],
 })

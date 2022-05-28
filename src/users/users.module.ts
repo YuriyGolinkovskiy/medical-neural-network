@@ -4,6 +4,7 @@ import { Role, RoleSchema } from 'src/roles/schemas/roles.schema';
 import { User, UserSchema } from './schemas/user.schema';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
+import { RolesModule } from '../roles/roles.module';
 
 @Module({
     imports: [
@@ -11,6 +12,7 @@ import { UsersService } from './users.service';
             { name: User.name, schema: UserSchema },
             { name: Role.name, schema: RoleSchema },
         ]),
+        RolesModule,
     ],
     controllers: [UsersController],
     providers: [UsersService],
