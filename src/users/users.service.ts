@@ -20,8 +20,8 @@ export class UsersService {
     }
 
     async create(createUserDto: CreateUserDto): Promise<User> {
-        const createdUser = new this.userModel(createUserDto);
-        return createdUser.save();
+        const createdUser = await this.userModel.create(createUserDto);
+        return createdUser;
     }
 
     async remove(id: string): Promise<User> {

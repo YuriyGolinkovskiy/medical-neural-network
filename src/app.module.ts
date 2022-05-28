@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UsersModule } from './users/users.module';
 import { NetworkModule } from './network/network.module';
+import { RolesModule } from './roles/roles.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { NetworkModule } from './network/network.module';
     ),
     UsersModule,
     NetworkModule,
+    RolesModule,
   ],
   controllers: [],
   providers: [],
