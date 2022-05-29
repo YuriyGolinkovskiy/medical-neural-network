@@ -22,9 +22,10 @@ interface predict {
 
 @Injectable()
 export class NetworkService {
+    DATASETS_DIR = 'src/dataset';
     TRAIN_DIR = 'src/dataset';
     TEST_DIR = 'src/dataset';
-    MODEL_DIR = 'model/model.json';
+    MODELS_DIR = 'models';
 
     trainData = [];
     testData = [];
@@ -35,10 +36,18 @@ export class NetworkService {
     ): Promise<void> {
         console.log('Loading images...');
         this.trainData = this.loadImages(
-            path.join(this.TRAIN_DIR, networkSettingsDto.pathTrainData)
+            path.join(
+                this.DATASETS_DIR,
+                networkSettingsDto.pathToDataset,
+                'train'
+            )
         );
         this.testData = this.loadImages(
-            path.join(this.TEST_DIR, networkSettingsDto.pathTestData)
+            path.join(
+                this.DATASETS_DIR,
+                networkSettingsDto.pathToDataset,
+                'test'
+            )
         );
         console.log('Images loaded successfully');
 
@@ -172,5 +181,13 @@ export class NetworkService {
                 .oneHot(tf.tensor1d(this.testData[1], 'int32'), 2)
                 .toFloat(),
         };
+    }
+
+    getModels(): string[] {
+        let models: string[] = [];
+        fs.readdirSync(this.MODELS_DIR).forEach((file) => {
+            models.push(file);
+        });
+        return models;
     }
 }

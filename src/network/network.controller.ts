@@ -27,7 +27,7 @@ export class NetworkController {
     getTrainedNetworkModel(
         @Body() networkSettingsDto: NetworkSettingsDto
     ): Promise<void> {
-        const path = './' + networkSettingsDto.modelSaveName;
+        //const path = './' + networkSettingsDto.modelSaveName;
         return this.networkService.getTrainedNetworkModel(networkSettingsDto);
     }
 
@@ -40,5 +40,12 @@ export class NetworkController {
         @Body() predictionDto: PredictionDto
     ): Promise<predictResult[]> {
         return this.networkService.getPrediction(files, predictionDto);
+    }
+
+    @ApiOperation({ summary: 'Получить доступные и обученные модели сетей' })
+    @ApiResponse({ status: 200 })
+    @Get('getModels')
+    getModels(): string[] {
+        return this.networkService.getModels();
     }
 }

@@ -11,16 +11,16 @@ export class NetworkSettingsDto {
     readonly batchSize: number;
 
     @ApiProperty({
-        example: 'model_test',
-        description: 'Путь к тестовому датасету на сервере',
+        example: 'path_dataset',
+        description: 'Путь к датасету на сервере',
     })
-    readonly pathTestData: string;
+    readonly pathToDataset: string;
 
-    @ApiProperty({
-        example: 'model_train',
-        description: 'Путь к тренировочному датасету на сервере',
-    })
-    readonly pathTrainData: string;
+    // @ApiProperty({
+    //     example: 'model_train',
+    //     description: 'Путь к тренировочному датасету на сервере',
+    // })
+    // readonly pathTrainData: string;
 
     @ApiProperty({ example: 'model', description: 'Имя модели' })
     readonly modelSaveName: string;
