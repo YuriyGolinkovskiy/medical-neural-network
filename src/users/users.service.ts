@@ -37,4 +37,11 @@ export class UsersService {
     async update(id: string, userDto: UpdateUserDto): Promise<UserDocument> {
         return this.userModel.findByIdAndUpdate(id, userDto, { new: true });
     }
+
+    async getUserByLogin(_login: string): Promise<UserDocument> {
+        const user = await this.userModel.findOne({
+            login: _login,
+        });
+        return user;
+    }
 }
