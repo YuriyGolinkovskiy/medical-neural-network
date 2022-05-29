@@ -8,8 +8,11 @@ import {
     Param,
     Post,
     Put,
+    UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Roles } from 'src/auth/roles-auth.decorator';
+import { RolesGuard } from 'src/auth/roles.guard';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { RolesService } from './roles.service';
@@ -28,6 +31,8 @@ export class RolesController {
 
     @ApiOperation({ summary: 'Создание роли' })
     @ApiResponse({ status: 201, type: Role })
+    @Roles('ADMIN')
+    @UseGuards(RolesGuard)
     @Post()
     @HttpCode(HttpStatus.CREATED)
     create(@Body() createRoleDto: CreateRoleDto): Promise<Role> {
@@ -43,6 +48,8 @@ export class RolesController {
 
     @ApiOperation({ summary: 'Изменение роли по значению' })
     @ApiResponse({ status: 200, type: Role })
+    @Roles('ADMIN')
+    @UseGuards(RolesGuard)
     @Put(':value')
     update(
         @Param('value') value: string,
@@ -53,6 +60,8 @@ export class RolesController {
 
     @ApiOperation({ summary: 'Удаление роли по значению' })
     @ApiResponse({ status: 200, type: Role })
+    @Roles('ADMIN')
+    @UseGuards(RolesGuard)
     @Delete(':value')
     delete(@Param('value') value: string): Promise<Role> {
         return this.roleService.removeByValue(value);

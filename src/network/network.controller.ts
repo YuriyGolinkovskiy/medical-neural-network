@@ -4,6 +4,7 @@ import {
     Get,
     Post,
     UploadedFiles,
+    UseGuards,
     UseInterceptors,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
@@ -11,6 +12,8 @@ import { NetworkSettingsDto } from './dto/network-settings.dto';
 import { NetworkService, predictResult } from './network.service';
 import { PredictionDto } from './dto/prediction.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Roles } from 'src/auth/roles-auth.decorator';
+import { RolesGuard } from 'src/auth/roles.guard';
 @ApiTags('Network')
 @Controller('network')
 export class NetworkController {
@@ -18,6 +21,8 @@ export class NetworkController {
 
     @ApiOperation({ summary: 'Тренировать сеть и сохранить ее на сервере' })
     @ApiResponse({ status: 200, type: null })
+    @Roles('ADMIN')
+    @UseGuards(RolesGuard)
     @Post('trainNetwork')
     getTrainedNetworkModel(
         @Body() networkSettingsDto: NetworkSettingsDto
