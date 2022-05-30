@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import * as tf from '@tensorflow/tfjs-node';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Network } from './network.model';
 import { NetworkSettingsDto } from './dto/network-settings.dto';
 import { PredictionDto } from './dto/prediction.dto';
+import { FolderDto } from './dto/folder.dto';
+import { AddRemoveFilesDto } from './dto/add-remove-files.dto';
 
 export interface networkArgs {
     epochs: number;
@@ -23,8 +25,6 @@ interface predict {
 @Injectable()
 export class NetworkService {
     DATASETS_DIR = 'src/dataset';
-    TRAIN_DIR = 'src/dataset';
-    TEST_DIR = 'src/dataset';
     MODELS_DIR = 'models';
 
     trainData = [];
@@ -189,5 +189,168 @@ export class NetworkService {
             models.push(file);
         });
         return models;
+    }
+
+    getDatasets(): string[] {
+        let datasets: string[] = [];
+        fs.readdirSync(this.DATASETS_DIR).forEach((file) => {
+            datasets.push(file);
+        });
+        return datasets;
+    }
+
+    createDataset(dto: FolderDto): string {
+        let isBusy: boolean = false;
+        fs.readdirSync(this.DATASETS_DIR).forEach((file) => {
+            if (file === dto.folderName) isBusy = true;
+        });
+        if (isBusy) {
+            throw new HttpException(
+                'Такой датасет уже существует',
+                HttpStatus.BAD_REQUEST
+            );
+        }
+        fs.mkdir(
+            path.join(this.DATASETS_DIR, dto.folderName, 'train'),
+            { recursive: true },
+            (err) => {
+                if (err) throw err;
+            }
+        );
+        fs.mkdir(
+            path.join(this.DATASETS_DIR, dto.folderName, 'test'),
+            { recursive: true },
+            (err) => {
+                if (err) throw err;
+            }
+        );
+        return dto.folderName;
+    }
+
+    deleteDataset(dto: FolderDto): string {
+        let isBusy: boolean = false;
+        fs.readdirSync(this.DATASETS_DIR).forEach((file) => {
+            if (file === dto.folderName) isBusy = true;
+        });
+
+        if (!isBusy) {
+            throw new HttpException(
+                'Датасета с таким наименование нет',
+                HttpStatus.BAD_REQUEST
+            );
+        }
+        fs.rm(
+            path.join(this.DATASETS_DIR, dto.folderName),
+            { recursive: true },
+            (err) => {
+                if (err) throw err;
+            }
+        );
+        return dto.folderName;
+    }
+
+    deleteModel(dto: FolderDto): string {
+        let isBusy: boolean = false;
+        fs.readdirSync(this.MODELS_DIR).forEach((file) => {
+            if (file === dto.folderName) isBusy = true;
+        });
+
+        if (!isBusy) {
+            throw new HttpException(
+                'Модели с таким наименование нет',
+                HttpStatus.BAD_REQUEST
+            );
+        }
+        fs.rm(
+            path.join(this.MODELS_DIR, dto.folderName),
+            { recursive: true },
+            (err) => {
+                if (err) throw err;
+            }
+        );
+        return dto.folderName;
+    }
+
+    addFiles(dto: AddRemoveFilesDto, files: Express.Multer.File[]) {
+        const savePath: string = JSON.parse(dto.isTrainData)
+            ? path.join(this.DATASETS_DIR, dto.datasetName, 'train')
+            : path.join(this.DATASETS_DIR, dto.datasetName, 'test');
+        let isBusy: boolean = false;
+        fs.readdirSync(this.DATASETS_DIR).forEach((file) => {
+            if (file === dto.datasetName) isBusy = true;
+        });
+        if (!isBusy) {
+            throw new HttpException(
+                'Датасета с таким наименование нет',
+                HttpStatus.BAD_REQUEST
+            );
+        }
+        let fileNames: string[] = [];
+        let counter = 1;
+        const filesInDir = fs
+            .readdirSync(savePath)
+            .sort(function (a: string, b: string) {
+                var n = Number(a.split('.')[0].split('_')[0]);
+                var j = Number(b.split('.')[0].split('_')[0]);
+                return n - j;
+            });
+        filesInDir.forEach((element) => {
+            let n = element.split('.')[0].split('_')[0];
+            if (JSON.parse(dto.isTarget)) {
+                if (element.toLowerCase().endsWith('_1.jpg')) {
+                    if (Number(n) !== counter) {
+                        for (counter; counter < Number(n); counter++) {
+                            fileNames.push(`${counter}_1.jpg`);
+                        }
+                    }
+                    counter += 1;
+                }
+            } else {
+                if (element.toLowerCase().endsWith('_0.jpg')) {
+                    if (Number(n) !== counter) {
+                        for (counter; counter < Number(n); counter++) {
+                            fileNames.push(`${counter}_0.jpg`);
+                        }
+                    }
+                    counter += 1;
+                }
+            }
+        });
+        let results: string[] = [];
+        files.forEach((file) => {
+            let filepath: string = '';
+            if (fileNames.length != 0) {
+                filepath = path.join(savePath, fileNames.shift());
+            } else if (JSON.parse(dto.isTarget)) {
+                filepath = path.join(savePath, counter + '_1.jpg');
+                counter += 1;
+            } else {
+                filepath = path.join(savePath, counter + '_0.jpg');
+                counter += 1;
+            }
+            fs.writeFile(filepath, file.buffer, 'binary', function (err) {
+                if (err) {
+                    throw err;
+                }
+            });
+            results.push(filepath);
+        });
+
+        return results;
+    }
+
+    deleteFile(dto: AddRemoveFilesDto) {
+        const savePath: string = JSON.parse(dto.isTrainData)
+            ? path.join(this.DATASETS_DIR, dto.datasetName, 'train')
+            : path.join(this.DATASETS_DIR, dto.datasetName, 'test');
+        let results: string[] = [];
+        dto.filesName.forEach((fileName) => {
+            const filePath = path.join(savePath, fileName);
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+                results.push(fileName);
+            }
+        });
+        return results;
     }
 }

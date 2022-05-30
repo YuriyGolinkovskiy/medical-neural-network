@@ -16,12 +16,6 @@ export class NetworkSettingsDto {
     })
     readonly pathToDataset: string;
 
-    // @ApiProperty({
-    //     example: 'model_train',
-    //     description: 'Путь к тренировочному датасету на сервере',
-    // })
-    // readonly pathTrainData: string;
-
     @ApiProperty({ example: 'model', description: 'Имя модели' })
     readonly modelSaveName: string;
 }
