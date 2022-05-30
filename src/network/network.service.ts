@@ -353,4 +353,21 @@ export class NetworkService {
         });
         return results;
     }
+
+    getStaticImages(dto: AddRemoveFilesDto) {
+        const server = 'http://localhost:5000';
+        const savePath: string = JSON.parse(dto.isTrainData)
+            ? path.join(this.DATASETS_DIR, dto.datasetName, 'train')
+            : path.join(this.DATASETS_DIR, dto.datasetName, 'test');
+        let results: string[] = [];
+        const filesInDir = fs.readdirSync(savePath);
+        filesInDir.forEach((element) => {
+            const staticPath = JSON.parse(dto.isTrainData)
+                ? path.join(server, dto.datasetName, 'train', element)
+                : path.join(server, dto.datasetName, 'test', element);
+            results.push(staticPath);
+        });
+
+        return results;
+    }
 }

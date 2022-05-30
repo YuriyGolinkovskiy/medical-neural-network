@@ -106,4 +106,11 @@ export class NetworkController {
     deleteFile(@Body() dto: AddRemoveFilesDto) {
         return this.networkService.deleteFile(dto);
     }
+
+    @ApiOperation({ summary: 'Получить статические изображения' })
+    @ApiResponse({ status: 200 })
+    @Get('getStaticImages')
+    getStaticImages(@Body() dto: AddRemoveFilesDto) {
+        return this.networkService.getStaticImages(dto);
+    }
 }
