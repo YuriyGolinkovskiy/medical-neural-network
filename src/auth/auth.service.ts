@@ -35,6 +35,7 @@ export class AuthService {
             ...userDto,
             password: hashPassword,
         });
+
         return this.generateToken(user);
     }
 

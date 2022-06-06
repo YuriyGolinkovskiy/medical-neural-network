@@ -91,10 +91,7 @@ export class NetworkController {
     @UseGuards(RolesGuard)
     @UseInterceptors(FilesInterceptor('file'))
     @Post('addFiles')
-    addFiles(
-        @Body() dto: AddRemoveFilesDto,
-        @UploadedFiles() files: Express.Multer.File[]
-    ) {
+    addFiles(@Body() dto: AddRemoveFilesDto, @UploadedFiles() files: any) {
         return this.networkService.addFiles(dto, files);
     }
 

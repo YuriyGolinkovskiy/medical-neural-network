@@ -21,6 +21,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@nestjs/axios": "^0.0.8",
     "@nestjs/common": "^8.0.0",
     "@nestjs/config": "^2.0.0",
     "@nestjs/core": "^8.0.0",
@@ -30,13 +31,17 @@
     "@nestjs/serve-static": "^2.2.2",
     "@nestjs/swagger": "^5.2.1",
     "@tensorflow/tfjs-node": "^3.17.0",
+    "axios": "^0.27.2",
     "bcryptjs": "^2.4.3",
     "cross-env": "^7.0.3",
+    "form-data": "^4.0.0",
     "mongoose": "^6.3.3",
+    "nestjs-telegraf": "^2.4.1",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0",
-    "swagger-ui-express": "^4.4.0"
+    "swagger-ui-express": "^4.4.0",
+    "telegraf": "^4.8.3"
   },
   "devDependencies": {
     "@nestjs/cli": "^8.0.0",

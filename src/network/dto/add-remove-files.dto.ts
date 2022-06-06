@@ -21,6 +21,8 @@ export class AddRemoveFilesDto {
     })
     readonly isTarget: string;
 
+    readonly files: any;
+
     @ApiProperty({
         example: '[file1, file2, file3]',
         description: 'Массив с именами файлов для удаления',

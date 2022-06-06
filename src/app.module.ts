@@ -1,3 +1,4 @@
+import { BaseScene } from 'telegraf/typings/scenes';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -7,7 +8,9 @@ import { RolesModule } from './roles/roles.module';
 import { AuthModule } from './auth/auth.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import * as path from 'path';
-
+import { TelegramBotModule } from './telegram-bot/telegram-bot.module';
+import { TelegrafModule } from 'nestjs-telegraf';
+import { session } from 'telegraf';
 @Module({
     imports: [
         ConfigModule.forRoot({
@@ -19,10 +22,15 @@ import * as path from 'path';
         ServeStaticModule.forRoot({
             rootPath: path.join(__dirname, '..', 'src', 'dataset'),
         }),
+        TelegrafModule.forRoot({
+            token: process.env.TELEGRAM_BOT_API_TOKEN,
+            middlewares: [session()],
+        }),
         UsersModule,
         NetworkModule,
         RolesModule,
         AuthModule,
+        TelegramBotModule,
     ],
     controllers: [],
     providers: [],

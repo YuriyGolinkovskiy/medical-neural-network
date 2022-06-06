@@ -25,6 +25,7 @@ export class UsersService {
     async create(createUserDto: CreateUserDto): Promise<UserDocument> {
         const createdUser = await this.userModel.create(createUserDto);
         const role = await this.roleService.getRoleByValue('USER');
+        createdUser.$set('tokenDate', new Date());
         createdUser.$set('roles', [role.value]);
         // role.users.push(createdUser._id);
         // role.save();

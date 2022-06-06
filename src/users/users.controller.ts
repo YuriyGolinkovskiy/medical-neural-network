@@ -41,6 +41,13 @@ export class UsersController {
         return this.usersService.findById(id);
     }
 
+    @ApiOperation({ summary: 'Получение пользователя по логину' })
+    @ApiResponse({ status: 200, type: User })
+    @Get('getUserByLogin/:login')
+    findByLogin(@Param('login') login: string): Promise<User> {
+        return this.usersService.getUserByLogin(login);
+    }
+
     @ApiOperation({ summary: 'Создание пользователя' })
     @ApiResponse({ status: 201, type: User })
     @Post()

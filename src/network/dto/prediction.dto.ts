@@ -9,5 +9,6 @@ export class PredictionDto {
         description:
             'Необходимо передать картинку. Можно несколько, таких полей',
     })
+    readonly files: any;
     readonly file: Buffer;
 }

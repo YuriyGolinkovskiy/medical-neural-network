@@ -86,9 +86,9 @@ export class NetworkService {
             `file://models/${predictionDto.modelName}/model.json`
         );
         let tensors: tf.Tensor<tf.Rank>[] = [];
-        files.forEach((file) => {
+        predictionDto.files.forEach((file) => {
             let tensor: tf.Tensor<tf.Rank> = tf.node
-                .decodeImage(file.buffer)
+                .decodeImage(Buffer.from(file.data))
                 .resizeNearestNeighbor([96, 96])
                 .toFloat()
                 .div(tf.scalar(255.0))
@@ -271,7 +271,7 @@ export class NetworkService {
         return dto.folderName;
     }
 
-    addFiles(dto: AddRemoveFilesDto, files: Express.Multer.File[]) {
+    addFiles(dto: AddRemoveFilesDto, files: any) {
         const savePath: string = JSON.parse(dto.isTrainData)
             ? path.join(this.DATASETS_DIR, dto.datasetName, 'train')
             : path.join(this.DATASETS_DIR, dto.datasetName, 'test');
@@ -317,7 +317,7 @@ export class NetworkService {
             }
         });
         let results: string[] = [];
-        files.forEach((file) => {
+        dto.files.forEach((file) => {
             let filepath: string = '';
             if (fileNames.length != 0) {
                 filepath = path.join(savePath, fileNames.shift());
@@ -328,11 +328,16 @@ export class NetworkService {
                 filepath = path.join(savePath, counter + '_0.jpg');
                 counter += 1;
             }
-            fs.writeFile(filepath, file.buffer, 'binary', function (err) {
-                if (err) {
-                    throw err;
+            fs.writeFile(
+                filepath,
+                Buffer.from(file.data),
+                'binary',
+                function (err) {
+                    if (err) {
+                        throw err;
+                    }
                 }
-            });
+            );
             results.push(filepath);
         });
 
